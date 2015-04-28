@@ -1,0 +1,12 @@
+setup.py
+ncku/__init__.py
+ncku/items.py
+ncku/pipelines.py
+ncku/settings.py
+ncku/spiders/__init__.py
+ncku/spiders/ncku.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt

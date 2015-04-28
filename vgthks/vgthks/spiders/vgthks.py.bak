@@ -1,0 +1,198 @@
+# -*- coding: utf-8 -*-
+import sys
+import re
+import scrapy
+import time
+from scrapy.spider import Spider
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from datetime import datetime
+from scrapy.http import Request, FormRequest, TextResponse
+from scrapy.selector import Selector
+from scrapy import log
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from scrapy.contrib.linkextractors import LinkExtractor
+from ..items import vgthksItem
+
+#def process_value(value) :
+  #m = re.search(".*ns_Z7_CMRPOKG10GEA60INIP7A8O04T1_selectClinic\(('[^ ]*'),\s*('[^ ]*'),\s*('[^ ]*'),\s*('[^ ]*')\).*", value)
+  #if m :
+  #  aa = 'http://webreg.vghks.gov.tw/wps/portal/web/onlinereg/!ut/p/b1/04_SjzQytDCzBEH9CP2ovMSyzPTEksz8vMQcED_KLN7ZNyjA39vd0MDd1dHMwNPPM8Dc0cLfwCTEAKggEo8CH3NC-r30o9Jz8pOAVoXrR-FVDDILrMAAB3A00PfzyM9N1c-NyrHIzjJRBAAqP0Sv/dl4/d5/L0lDU0lKSmdrS0NsRUpDZ3BSQ1NBL29Ob2dBRUlRaGpFS0lRQUJHY1p3aklDa3FTaFNOQkFOYUEhIS80RzNhRDJnanZ5aENreUZNTlFpa3lGUDFTaklVUVEhIS9aN19DTVJQT0tHMTBHRUE2MElOSVA3QThPMDRUMS8wL2libS5pbnYvMjg3OTcwNjUwMTQ0L3NlbGVjdENsaW5pYw!!/' + '?dtlid=' + m.group(1) + '&ptitle=' +  m.group(2) + '&dtletitl=' + m.group(3) + '&dtltitle=' +  m.group(4)
+
+  #  return aa
+
+class vgthks(scrapy.Spider):
+    name = "vgthks"
+    allowed_domains = ["gov.tw"]
+    start_urls = [
+	"http://webreg.vghks.gov.tw/wps/portal/web/onlinereg"
+    ]
+    #rules =(
+	#Rule(LinkExtractor(restrict_xpaths=('//ul[@id="s_divisions"]/li/a',), attrs=('onclick',), process_value=process_value), callback='parse_table', follow= True),
+    #)
+    def __init__(self):
+	self.driver=webdriver.Firefox()
+
+    def parse(self, response):
+        self.driver.get(response.url)
+	btnList = self.driver.find_elements_by_xpath('//a[@id="selectClinicBtn"]')
+	btnNum = len(btnList)
+	#main_window=self.driver.current_window_handle
+	#for btn in range(btnNum):
+	for btn in range(2):
+                #self.driver.find_element_by_tag_name('body').send_keys(Keys.COMMAND + 't')
+        	self.driver.get(response.url)
+		btnList = self.driver.find_elements_by_xpath('//a[@id="selectClinicBtn"]')
+		btnList[btn].click()
+		yield Request(self.driver.current_url,callback=self.parse_table)
+		#self.driver.back()
+		#yield Request("http://webreg.vghks.gov.tw/wps/portal/web/onlinereg")
+		#self.driver.execute_script("window.close('');")
+		#self.driver.switch_to_window(main_window)
+        	#self.driver.get("http://webreg.vghks.gov.tw/wps/portal/web/onlinereg")
+		#btnList = self.driver.find_elements_by_xpath('//a[@id="selectClinicBtn"]')
+	self.driver.close()
+
+    def parse_table(self, response):
+	sel = Selector(response)
+	driver = self.driver
+	j = 1
+	n = 1
+
+        items = []
+	outpatient = sel.xpath('//div[@class="mb5"]/div[1]/h1/text()').extract()
+        #xx = driver.find_elements_by_xpath('//table[@id="report"]/tr/th/text()')
+	outpatient = re.sub(r'[\t\n\r]','',outpatient[0])
+	outpatientMap = {
+			 u'身心醫學科' : 'PSY',
+			 u'心臟內科' : 'CARDIO' ,
+			 u'肝膽腸胃科' : 'GASTROENTERO' , 
+		 	 u'神經科' : 'NEUR' , 
+			 u'風濕免疫科' : 'RHEUMATO',
+			 u'胸腔內科' : 'CHEST',
+			 u'血液腫瘤科' : 'ONC',
+			 u'腎臟內科' : 'NCPHRO',
+			 u'一般內科' : 'MED',
+			 u'新陳代謝內分泌科' : 'METABOLISM_ENDOCRINO', 
+			 u'一般外科' : 'SURG',
+			 u'心臟胸腔外科' : 'CADIR_THORACIC',
+			 u'神經外科' : 'NEURSURG',
+			 u'骨科' : 'ORTH',
+			 u'整形外科' : 'RECONSTRUCT',
+			 u'大腸直腸外科' : 'COLON_RECTAL',
+			 u'耳鼻喉科' : 'ENT',
+			 u'泌尿科' : 'URO',
+			 u'免疫風濕科' : 'to'
+	}
+        tables = sel.xpath('//table[@id="report"]')
+	dateList = sel.xpath('//table[@id="report"]/tr/th/text()').extract()
+	for t in range(len(tables)):
+            print "table = " + str(t)
+            ##每個table看有幾個row
+            tableRow = tables[t].xpath('.//ul[1]/li')
+	    tableRow2 = ''
+	    period = len(tables[t].xpath('//div[@class="position_r"]'))
+	    print "period = " + str(period)
+            tableColumn = (len(tables[t].xpath('.//td')) - period*2)/period
+	    if period == 2:
+            	tableRow2 = tables[t].xpath('.//ul')[tableColumn].xpath('.//li')
+            	print "tableRow2 = " + str(len(tableRow2))
+            print "tableRow = " + str(len(tableRow))
+            print "tableColumn = " + str(tableColumn)
+            for n in range(len(tableRow)):
+                for j in range(tableColumn):
+			#print "row:" + str(n) + " col:" + str(j)
+			lineNum = 0
+		    	data = tables[t].xpath(".//ul")[j].xpath(".//li")[n].xpath(".//text()").extract()
+			if data == []:
+			   continue
+			for index in range(len(data)):
+			   data[index] = re.sub(r'[\t\n\r]','',data[index])
+			   #print str(index) + data[index]
+			   if re.match("^\s*$",data[index]):
+				continue
+			   else:
+			   	lineNum = lineNum + 1
+			   print "row : " + str(n) + " col = " + str(j) + " lineNum : " + str(lineNum) + " data = " + data[index]
+			   if lineNum == 2 or lineNum ==3:
+            		   	item = vgthksItem()
+    				item['hospital'] = 'vgthks'
+                           	item['crawlTime'] = unicode(datetime.now().strftime("%Y%m%d %H:%M"))
+                           	item['dept'] = outpatientMap[outpatient]
+                           	item['outpatient'] = outpatient
+				item['time'] = 'morning'
+				mon = re.match(r"(\d*)/([\d]*)",dateList[j]).group(1)
+				day = re.match(r"(\d*)/([\d]*)",dateList[j]).group(2)
+				item['date'] = unicode(datetime.now().strftime("%Y")) + mon + day
+				print item['date']
+				if lineNum==2:
+					item['name'] = data[index]
+					item['name'] = re.sub("\(.*",'',item['name'])
+					print item['name']
+					print item['time']
+					print item['outpatient']
+				elif lineNum==3:
+					item['full'] = data[index]
+					if not re.match(u'額滿',item['full']):
+						item['full'] = u'可掛號'
+					print item['full']
+					#xpath = '//ul[%d]/li[%d]/div[@id="goFullInfoBtn"]'% (j,n) 
+					#link = driver.find_elements_by_xpath(xpath)
+					#print link
+                        		#yield Request(response.url, callback = self.parse_shift, meta = {'item': item})
+					items.append(item)
+					#xpath = '//ul[%d]/li[%d]/div[@id="goFillInfoBtn"]' % (j,n)
+					#xpath = '//ul[%d]/li[%d]/div[@id="goFillInfoBtn"]' % (j,n)
+					#print xpath
+					#link = driver.find_elements_by_xpath(xpath)
+					#print link
+	    print "---------------"
+            for n in range(len(tableRow2)):
+                for j in range(tableColumn , 2*tableColumn):
+			#print "row:" + str(n) + " col:" + str(j)
+			lineNum = 0
+		    	data = tables[t].xpath(".//ul")[j].xpath(".//li")[n].xpath(".//text()").extract()
+			if data == []:
+			   continue
+			for index in range(len(data)):
+			   data[index] = re.sub(r'[\t\n\r]','',data[index])
+			   #print str(index) + data[index]
+			   if re.match("^\s*$",data[index]):
+				continue
+			   else:
+			   	lineNum = lineNum + 1
+			   #print "row : " + str(n) + " col = " + str(j) + " index : " + str(index) + " data = " + data[index]
+			   if lineNum == 2 or lineNum ==3:
+            		   	item = vgthksItem()
+    				item['hospital'] = 'vgthks'
+                           	item['crawlTime'] = unicode(datetime.now().strftime("%Y%m%d %H:%M"))
+                           	item['dept'] = outpatientMap[outpatient]
+                           	item['outpatient'] = outpatient
+				item['time'] = 'afternoon'
+				mon = re.match(r"(\d*)/([\d]*)",dateList[j-7]).group(1)
+				day = re.match(r"(\d*)/([\d]*)",dateList[j-7]).group(2)
+				item['date'] = unicode(datetime.now().strftime("%Y")) + mon + day
+				if lineNum==2:
+					item['name'] = data[index]
+					item['name'] = re.sub("\(.*",'',item['name'])
+					print item['name']
+					print item['time']
+					print item['outpatient']
+				elif lineNum==3:
+					#print data[index]
+					item['full'] = data[index]
+					if not re.match(u'額滿',item['full']):
+						item['full'] = u'可掛號'
+					items.append(item)
+
+
+    def parse_shift(self, response):
+        item = response.meta['item']
+	print "to get link------------"
+	self.driver.find_elements_by_xpath("//ul[j]/li[n]/div[@onclick='ns_Z7_CMRPOKG10GEA60INIP7A8O04T1_reload()']").click()
+	link = response.url
+	print link
+	item['link'] = link
+        return item
+
+

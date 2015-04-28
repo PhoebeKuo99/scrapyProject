@@ -1,0 +1,12 @@
+setup.py
+cch/__init__.py
+cch/items.py
+cch/pipelines.py
+cch/settings.py
+cch/spiders/__init__.py
+cch/spiders/cch.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt
