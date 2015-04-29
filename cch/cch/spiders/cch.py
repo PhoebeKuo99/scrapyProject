@@ -20,6 +20,7 @@ from selenium.common.exceptions import WebDriverException
 from ..items import cchItem
 
 ihospital = 0
+itimeXpath = ''
 dcap = dict(DesiredCapabilities.PHANTOMJS)
 dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0")
 
@@ -38,7 +39,7 @@ class cch(scrapy.Spider):
     ]
     def __init__(self,**kwargs):
 	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
-	#self.driver=webdriver.Firefox()
+	#self.driver=webdriver.Fire
 
     def parse(self, response):
         self.driver.get(response.url)
@@ -73,18 +74,24 @@ class cch(scrapy.Spider):
 		outpatientXpath = "(//table[@id='DListSec']//table)[%d]//a" %(deptIndex)
 		outpatientList = self.driver.find_elements_by_xpath(outpatientXpath)
 		for p in range(len(outpatientList)):
-		#for p in range(1):
+		#for p in range(1,2,1):
 			outpatient = outpatientList[p].text
 			outpatientList[p].click()
-			time.sleep(10)
+			time.sleep(5)
 			outpatientList = self.driver.find_elements_by_xpath(outpatientXpath)
 			btnList = self.driver.find_elements_by_xpath('//select[@name="OPDate"]//option')
+			#btnList = self.driver.find_elements_by_xpath('//select[@name="OPDate"]//option')
 			btnNum = len(btnList)
 			for btn in range(btnNum):
 			#for btn in range(1):
-				btnList[btn].click()
-				time.sleep(10)
+				#print "OPDate : " + str(btn)
 				btnList = self.driver.find_elements_by_xpath('//select[@name="OPDate"]//option')	
+				if btn !=0:
+					element = WebDriverWait(self.driver,10).until(EC.invisibility_of_element_located((By.ID, btnList[btn])))
+					if element : 
+						btnList[btn].click()
+						time.sleep(5)
+						btnList = self.driver.find_elements_by_xpath('//select[@name="OPDate"]//option')	
 				###
 				tableXpath = "((//table[@id='MainDL']//tr//td)/table[not(contains(@id,'Table'))])"
 				tableList = self.driver.find_elements_by_xpath(tableXpath)
@@ -93,14 +100,17 @@ class cch(scrapy.Spider):
 				#for n in range(1):
 					### tr
 					tableIndex = n + 1
+					#print "table : " + str(tableIndex)
 					trXpath = "((//table[@id='MainDL']//tr//td)/table[not(contains(@id,'Table'))])[%d]/tbody/tr" %(tableIndex)
 					trList = self.driver.find_elements_by_xpath(trXpath)
 					trLen = len(trList)
 					date = ''	
 					for k in range(trLen):
+						trList = self.driver.find_elements_by_xpath(trXpath)
 						name = ''
 						itime = ''
 						trIndex = k + 1
+						#print "tr : " + str(trIndex)
 						if trIndex == 1:
 							### date
 							dateXpath = "((//table[@id='MainDL']//tr//td)/table[not(contains(@id,'Table'))])[%d]/tbody/tr[%d]/td[1]" %(tableIndex,trIndex)
@@ -116,6 +126,7 @@ class cch(scrapy.Spider):
 								date = unicode(datetime.now().strftime("%Y")) + mon + day
 							nameXpath = "(((//table[@id='MainDL']//tr//td)/table[not(contains(@id,'Table'))])[%d]/tbody/tr[%d]/td[3]//td/table)" %(tableIndex,trIndex)
 							nameList = self.driver.find_elements_by_xpath(nameXpath)
+							time.sleep(5)
 							itimeXpath = "(((//table[@id='MainDL']//tr//td)/table[not(contains(@id,'Table'))])[%d]/tbody/tr[%d]/td[2])" %(tableIndex,trIndex)
 							itime = self.driver.find_element_by_xpath(itimeXpath).text
 						else:
@@ -123,7 +134,8 @@ class cch(scrapy.Spider):
 							nameList = self.driver.find_elements_by_xpath(nameXpath)
 							itimeXpath = "(((//table[@id='MainDL']//tr//td)/table[not(contains(@id,'Table'))])[%d]/tbody/tr[%d]/td[1])" %(tableIndex,trIndex)
 							itime = self.driver.find_element_by_xpath(itimeXpath).text
-						for j in range(len(nameList)):
+						nameLen = len(nameList)
+						for j in range(nameLen):
 							linkIndex = j + 1
 							if itime == u'上 午':
 								itime = 'morning'
@@ -131,7 +143,13 @@ class cch(scrapy.Spider):
 								itime = 'afternoon'
 							elif itime ==u'晚 上':
 								itime = 'evening'
+							nameList = self.driver.find_elements_by_xpath(nameXpath)
+							#print itime
+							#print date
+							#print outpatient
+							#print nameList[j].text
 							name = nameList[j].text.split('\n')[1]
+							nameList = self.driver.find_elements_by_xpath(nameXpath)
 							full = nameList[j].text.split('\n')[2]
 							linkXpath = str('%s//a' %(nameXpath))
 							try:
@@ -156,7 +174,7 @@ class cch(scrapy.Spider):
 							items.append(item)	
 							#print "hospital : " + hospital + " dept : " +  dept + " outpatient : " + outpatient + " Name : " + name + " date : " + date + " time : " + itime + " full : " + full
 	if ihospital == 8 :
-		self.driver.close()
+		self.driver.quit()
 	return items
 
    
