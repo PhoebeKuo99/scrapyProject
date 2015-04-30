@@ -14,7 +14,7 @@ from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 #from scrapy.stats import Stats
 dcap = dict(DesiredCapabilities.PHANTOMJS)
-dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0")
+dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:37.0) Gecko/20100101 Firefox/37.0")
 class ncku(scrapy.Spider):
     name = "ncku"
     allowed_domains = ["ncku.edu.tw"]
@@ -23,11 +23,13 @@ class ncku(scrapy.Spider):
 	"http://140.116.220.21/DeptUI.aspx"
     ]
     def __init__(self,**kwargs):
+	#self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
 	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
 	#self.driver=webdriver.Firefox()
 
     def parse(self, response):
 	self.driver.get(response.url)
+	regTable = ''
 	if response.url == 'http://www.hosp.ncku.edu.tw/Tandem/DeptUI.aspx':
 		hospital = 'ncku'
 		regTable = "table[@id='tRegSchedule']"
@@ -38,10 +40,11 @@ class ncku(scrapy.Spider):
 	outpatientList = self.driver.find_elements_by_xpath("//table[@id='tContent']//a")
         #btnList = self.driver.find_elements_by_xpath('//table[@class="style19"]//input[@type="submit"]')
 	#for n in range(1):
-	for n in range(len(outpatientList)):
+	for n in range(len(outpatientList)-2):
 		dept = outpatientList[n].text
+		#print "dept : " + dept + " n : " + str(n)
 		outpatientList[n].click()
-		time.sleep(5)
+		time.sleep(10)
 		dateList = self.driver.find_elements_by_xpath("//%s//tr" % (regTable))[1]
 		#print dateList
 		#dateLen = len(dateList) - 2
@@ -53,22 +56,28 @@ class ncku(scrapy.Spider):
 		colLen = len(colList)
 		ioutpatient = ''
 		weekList = self.driver.find_elements_by_xpath('//select[@id="ctl00_MainContent_ddlWeeks"]//option')
+		#print "weekLen : " + str(len(weekList)) 
+		#print "rowLen : " + str(rowLen) 
+		#print "colLen : " + str(colLen) 
 		for week in range(len(weekList)):
+		#for week in range(1):
 			nth = week + 1
 			if nth > 1 :
 				weekList[week].click()
-				time.sleep(5)
+				time.sleep(10)
 				weekList = self.driver.find_elements_by_xpath('//select[@id="ctl00_MainContent_ddlWeeks"]//option')
 			for row in range(rowLen):
+			#for row in range(1):
 				i = 0
 				### get col
 				for col in range(colLen):
 				#for col in range(1):
-					r_index = row + 2
-					c_index = col + 2
+					r_index = row + 3
+					c_index = col + 3
 					xpath = "(//%s//tr)[%d]//td[%d]" % (regTable,r_index,c_index)
 					xpath2 = "(//%s//tr)[%d]//td[%d]/a" % (regTable,r_index,c_index)
 					doc = self.driver.find_elements_by_xpath(xpath)
+					#print doc
 					if doc !=[] :	
 						item = nckuItem()
 						item['hospital'] = hospital
@@ -92,7 +101,8 @@ class ncku(scrapy.Spider):
 								item['name'] = m.group(1)
 							else:
 								item['name'] = name
-							xpath4 = "((//%s//tr)/td[1])[%d]" % (regTable,row)
+							xpath4 = "((//%s//tr)/td[1])[%d]" % (regTable,row+1)
+							#print xpath4
 							outpatient = self.driver.find_element_by_xpath(xpath4)
 							#print outpatient.text
 							if not re.match(r"^\d+$",outpatient.text,re.UNICODE):
@@ -114,12 +124,12 @@ class ncku(scrapy.Spider):
 								item['date'] = unicode(datetime.now().strftime("%Y")) + mon + day
 							item['dept'] = dept
 							items.append(item)
-							#print "colLen = " + str(colLen) + " row : " + str(row) + " col : " + str(col) + " " + "name : " + item['name'] + "itime : " + str(itime) + " time : " + item['time'] + " date : " + item['date'] + " full : " + item['full'] + " outpatient : " + item['outpatient'] + "link : " + str(item['link'])
+							print "colLen = " + str(colLen) + " row : " + str(row) + " col : " + str(col) + " " + "name : " + item['name'] + "itime : " + str(itime) + " time : " + item['time'] + " date : " + item['date'] + " full : " + item['full'] + " outpatient : " + item['outpatient'] + "link : " + str(item['link'])
 
 		self.driver.get(response.url)
 		outpatientList = self.driver.find_elements_by_xpath("//table[@id='tContent']//a")
 			
-	self.driver.close()
+	self.driver.quit()
 	return items
 
 
