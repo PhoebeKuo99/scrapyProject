@@ -23,21 +23,28 @@ ihospital = 0
 itimeXpath = ''
 dcap = dict(DesiredCapabilities.PHANTOMJS)
 dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0")
+startUrlLen = 0
 
 class cch(scrapy.Spider):
     name = "cch"
     allowed_domains = ["org.tw"]
-    start_urls = [
- 	"http://www2.cch.org.tw/20RG/opd/Service-e.aspx",
-	"http://www.rc.cch.org.tw/opd/Service-e.aspx",
- 	"http://www2.cch.org.tw/rdweb/opd/Service-e.aspx",
- 	"http://www.ys.cch.org.tw/opd/Service-e.aspx",
- 	"http://www2.cch.org.tw/NYRG/opd/Service-e.aspx",
- 	"http://web3.yl.cch.org.tw/opd/Service-e.aspx",
- 	"http://www2.cch.org.tw/YMRG/opd/Service-e.aspx",
-	"http://www.cch.org.tw/opd/Service-e.aspx"
-    ]
-    def __init__(self,**kwargs):
+    def __init__(self,hospitalUrl=None,*args,**kwargs):
+	super(cch, self).__init__(*args,**kwargs)
+	if hospitalUrl:
+		self.start_urls = ['%s' % hospitalUrl]
+	else:
+    		self.start_urls = [
+       		 	"http://www2.cch.org.tw/20RG/opd/Service-e.aspx",
+        		"http://www.rc.cch.org.tw/opd/Service-e.aspx",
+        		"http://www2.cch.org.tw/rdweb/opd/Service-e.aspx",
+        		"http://www.ys.cch.org.tw/opd/Service-e.aspx",
+        		"http://www2.cch.org.tw/NYRG/opd/Service-e.aspx",
+        		"http://web3.yl.cch.org.tw/opd/Service-e.aspx",
+        		"http://www2.cch.org.tw/YMRG/opd/Service-e.aspx",
+        		"http://www.cch.org.tw/opd/Service-e.aspx"
+    		]
+	global startUrlLen
+	startUrlLen = len(self.start_urls)
 	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
 	#self.driver=webdriver.Fire
 
@@ -173,8 +180,10 @@ class cch(scrapy.Spider):
     							item['outpatient'] = outpatient
 							items.append(item)	
 							#print "hospital : " + hospital + " dept : " +  dept + " outpatient : " + outpatient + " Name : " + name + " date : " + date + " time : " + itime + " full : " + full
-	if ihospital == 8 :
+	global startUrlLen
+	if ihospital == startUrlLen :
 		self.driver.quit()
 	return items
+        
 
    

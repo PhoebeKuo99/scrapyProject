@@ -9,11 +9,18 @@
 #
 
 BOT_NAME = 'cch'
+AUTOTHROTTLE_ENABLED=True
+AUTOTHROTTLE_DEBUG=True
+
+DOWNLOADER_MIDDLEWARES = {
+        'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware' : None,
+        'cch.comm.rotate_useragent.RotateUserAgentMiddleware' :400
+    }
 
 SPIDER_MODULES = ['cch.spiders']
 NEWSPIDER_MODULE = 'cch.spiders'
 
-USER_AGENT = "Safari/537.1"
+#USER_AGENT = "Safari/537.1"
 DOWNLOAD_DELAY = 0.25
 SCHEDULER_ORDER = 'BFO'
 #LOG_FILE = 'log.txt'
