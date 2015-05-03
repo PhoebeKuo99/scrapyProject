@@ -7,6 +7,14 @@
 #
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #
+RETRY_HTTP_CODES = [111,500,503,504,400,403,404,408]
+RETRY_TIMES = 3
+AUTOTHROTTLE_ENABLED=True
+AUTOTHROTTLE_DEBUG=True
+DOWNLOADER_MIDDLEWARES = {
+        'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware' : None,
+        'ncku.comm.rotate_useragent.RotateUserAgentMiddleware' :400
+    }
 
 BOT_NAME = 'ncku'
 

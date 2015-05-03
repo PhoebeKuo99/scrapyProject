@@ -13,22 +13,34 @@ from scrapy.contrib.spiders import CrawlSpider, Rule
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 #from scrapy.stats import Stats
+
+ihospital=0
+startUrlLen = 0
 dcap = dict(DesiredCapabilities.PHANTOMJS)
 dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:37.0) Gecko/20100101 Firefox/37.0")
 class ncku(scrapy.Spider):
     name = "ncku"
     allowed_domains = ["ncku.edu.tw"]
-    start_urls = [
-	"http://www.hosp.ncku.edu.tw/Tandem/DeptUI.aspx",
-	"http://140.116.220.21/DeptUI.aspx"
-    ]
-    def __init__(self,**kwargs):
+    def __init__(self,hospitalUrl=None,*args,**kwargs):
+	super(ncku,self).__init__(*args,**kwargs)
+	if hospitalUrl:
+		self.start_urls = ['%s' % hospitalUrl]
+	else:
+	    	self.start_urls = [
+			"http://www.hosp.ncku.edu.tw/Tandem/DeptUI.aspx",
+			"http://140.116.220.21/DeptUI.aspx"
+    		]
+	global startUrlLen
+	startUrlLen = len(self.start_urls)
 	#self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
 	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
 	#self.driver=webdriver.Firefox()
 
     def parse(self, response):
+	time.sleep(10)
 	self.driver.get(response.url)
+	global ihospital
+	ihospital = ihospital + 1
 	regTable = ''
 	if response.url == 'http://www.hosp.ncku.edu.tw/Tandem/DeptUI.aspx':
 		hospital = 'ncku'
@@ -124,12 +136,12 @@ class ncku(scrapy.Spider):
 								item['date'] = unicode(datetime.now().strftime("%Y")) + mon + day
 							item['dept'] = dept
 							items.append(item)
-							print "colLen = " + str(colLen) + " row : " + str(row) + " col : " + str(col) + " " + "name : " + item['name'] + "itime : " + str(itime) + " time : " + item['time'] + " date : " + item['date'] + " full : " + item['full'] + " outpatient : " + item['outpatient'] + "link : " + str(item['link'])
+							#print "colLen = " + str(colLen) + " row : " + str(row) + " col : " + str(col) + " " + "name : " + item['name'] + "itime : " + str(itime) + " time : " + item['time'] + " date : " + item['date'] + " full : " + item['full'] + " outpatient : " + item['outpatient'] + "link : " + str(item['link'])
 
 		self.driver.get(response.url)
 		outpatientList = self.driver.find_elements_by_xpath("//table[@id='tContent']//a")
-			
-	self.driver.quit()
+	if ihospital == startUrlLen:		
+		self.driver.quit()
 	return items
 
 

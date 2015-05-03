@@ -6,12 +6,16 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import json
+from scrapy.exceptions import DropItem
 from scrapy.contrib.exporter import BaseItemExporter, JsonLinesItemExporter, JsonItemExporter
 
 
-class tzuchiPipelines(object):
+class nckuPipelines(object):
     def process_item(self, item, spider):
-        return item
+	if item[name] == '' or item[full]=='' or item[date] == '':
+		raise DropItem("Incorrect data of item %s" % item)
+	else:
+        	return item
 
 def encode_list(data):
     rv = []
