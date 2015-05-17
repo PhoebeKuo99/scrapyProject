@@ -9,8 +9,8 @@
 #
 
 BOT_NAME = 'cch'
-AUTOTHROTTLE_ENABLED=True
-AUTOTHROTTLE_DEBUG=True
+#AUTOTHROTTLE_ENABLED=True
+#AUTOTHROTTLE_DEBUG=True
 
 DOWNLOADER_MIDDLEWARES = {
         'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware' : None,

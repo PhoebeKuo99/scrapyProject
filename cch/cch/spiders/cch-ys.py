@@ -26,7 +26,7 @@ dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_
 startUrlLen = 0
 
 class cch(scrapy.Spider):
-    name = "cch"
+    name = "cch-ys"
     allowed_domains = ["org.tw"]
     def __init__(self,hospitalUrl=None,*args,**kwargs):
 	super(cch, self).__init__(*args,**kwargs)

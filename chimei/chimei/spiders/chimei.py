@@ -22,7 +22,10 @@ class chimei(CrawlSpider):
     name = "chimei"
     allowed_domains = ["org.tw"]
     start_urls = [
-	"http://www.chimei.org.tw/opdschedule/top.aspx?ihosp=10&lang=CH"
+	"http://www.chimei.org.tw/opdschedule/top.aspx?ihosp=10&lang=CH",
+	"http://www.chimei.org.tw/opdschedule/top.aspx?ihosp=11&lang=CH",
+	"http://www.chimei.org.tw/opdschedule/top.aspx?ihosp=13&lang=CH",
+	"http://www.chimei.org.tw/opdschedule/top.aspx?ihosp=14&lang=CH"
 	#"http://www.chimei.org.tw/opdschedule/register.aspx?idept=731&ihosp=10&lang=CH&ndept=%E4%B8%80%E8%88%AC%E5%85%A7%E7%A7%91"
 	#"http://www.chimei.org.tw/opdschedule/register.aspx?ihosp=10&lang=CH&idept=767&ndept=%E7%9D%A1%E7%9C%A0%E4%B8%AD%E5%BF%83"
 	#"http://www.chimei.org.tw/opdschedule/register.aspx?ihosp=10&lang=CH&idept=773&ndept=%25E7%2589%2599%25E7%25A7%2591"
