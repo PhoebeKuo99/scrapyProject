@@ -40,8 +40,8 @@ class vgthks(scrapy.Spider):
     def __init__(self,**kwargs):
     #def __init__(self, **kwargs):
     #	super(vgthks, self).__init__(self, **kwargs)
-	#self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
-	self.driver=webdriver.Firefox()
+	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
+	#self.driver=webdriver.Firefox()
 
     def parse(self, response):
         self.driver.get(response.url)
@@ -87,7 +87,7 @@ class vgthks(scrapy.Spider):
 		#self.driver.switch_to_window(main_window)
         	#self.driver.get("http://webreg.vghks.gov.tw/wps/portal/web/onlinereg")
 		#btnList = self.driver.find_elements_by_xpath('//a[@id="selectClinicBtn"]')
-	self.driver.close()
+	self.driver.quit()
 
     def parse_table(self, response):
 	sel = Selector(response)
@@ -253,8 +253,6 @@ class vgthks(scrapy.Spider):
 					#print item['link']
 					#print item['full']
 	return items
-	if btnLen == btn :
-		self.driver.close()
 
 
 
