@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+import sys
+import re
+import scrapy
+import time
+from scrapy.spider import Spider
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from datetime import datetime
+from scrapy.http import Request, FormRequest, TextResponse
+from scrapy.selector import Selector
+from scrapy import log
+from scrapy.contrib.linkextractors import LinkExtractor
+from ..items import skhItem
+import urllib
+baseLink = 'http://www.skh.org.tw/opdschedule/'
+
+def filter_links(self, links):
+        baseDomain = self.get_base_domain( self.response_url)
+	filteredLinks = []
+        for link in links:
+            if not re.match("https://regis.skh.org.tw/regisn/registdetail.aspx",link.url):
+                filteredLinks.append(link)
+        	return filteredLinks
+
+class skh(CrawlSpider):
+    name = "skh"
+    allowed_domains = ["org.tw"]
+    start_urls = [
+	"https://regis.skh.org.tw/regisn/WebForm1.aspx"
+    ]
+    rules =(
+	Rule(LinkExtractor(restrict_xpaths='(//table[4])//a'),cb_kwargs={'dept':4}, callback='parse_table',follow=True,process_links="filter_links",),
+    )
+
+    def parse_table(self, response,**kwargs):
+	if kwargs.get('dept') == 4 :
+		dept = u'內科'
+	sel = Selector(response)
+	rows = sel.xpath('//table[@id="Table1"]//tr')
+	#print len(tableLen)
+	for t in range(2,len(rows)+1,1):
+		date = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[1]//text()' % (t)).extract()
+		time = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[2]//text()' % (t)).extract()
+		outpatient = sel.xpath('(//table[@id="Table1"]//tr)[%d]//td[3]//text()' % (t)).extract()
+		full = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[6]//text()' % (t)).extract()
+		name = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[7]//text()' % (t)).extract()
+		print full
+		if full != []:
+			if re.match("^\d*$",full):
+				link = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[1]/a' % (t))
+				print link
+		else:
+			full = u'可掛號'
