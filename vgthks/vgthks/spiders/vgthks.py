@@ -40,8 +40,8 @@ class vgthks(scrapy.Spider):
     def __init__(self,**kwargs):
     #def __init__(self, **kwargs):
     #	super(vgthks, self).__init__(self, **kwargs)
-	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
-	#self.driver2=webdriver.Firefox()
+	#self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
+	self.driver=webdriver.Firefox()
 
     def parse(self, response):
         self.driver.get(response.url)
@@ -69,11 +69,18 @@ class vgthks(scrapy.Spider):
 		#print clinic
 		#if clinic in outpatientMap:
 		btnList[btn].click()
-		request = Request(self.driver.current_url,callback=self.parse_table)
-		request.meta['btn'] = btn
-		request.meta['btnNum'] = btnNum
-		request.meta['dept'] = dept
-		yield request
+		oriUrl = self.driver.current_url
+		for i in range(0,2,1):
+			if i == 1:
+				self.driver.get(oriUrl)
+				nextWeek = self.driver.find_elements_by_xpath("//div[@class='f_center week']//a")
+				nextWeek[0].click()
+				time.sleep(5)
+			request = Request(self.driver.current_url,callback=self.parse_table)
+			request.meta['btn'] = btn
+			request.meta['btnNum'] = btnNum
+			request.meta['dept'] = dept
+			yield request
 		#self.driver.back()
 		#yield Request("http://webreg.vghks.gov.tw/wps/portal/web/onlinereg")
 		#self.driver.execute_script("window.close('');")
@@ -247,7 +254,7 @@ class vgthks(scrapy.Spider):
 					#print item['full']
 	return items
 	if btnLen == btn :
-		self.driver2.close()
+		self.driver.close()
 
 
 
