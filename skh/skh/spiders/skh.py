@@ -28,16 +28,16 @@ class skh(CrawlSpider):
     ]
     rules =(
 	#Rule(LinkExtractor(restrict_xpaths='//a[contains(@href,"doct.aspx")]'),callback='parse_dep',follow=True,),
-	#Rule(LinkExtractor(restrict_xpaths='(//table//table)[3]//a'),cb_kwargs={'dept':u'內科'},callback='parse_dep',follow=True,),
-	#Rule(LinkExtractor(restrict_xpaths='(//table//table)[5]//a'),cb_kwargs={'dept':u'外科'},callback='parse_dep',follow=True,),
+	Rule(LinkExtractor(restrict_xpaths='(//table//table)[3]//a'),cb_kwargs={'dept':u'內科'},callback='parse_dep',follow=True,),
+	Rule(LinkExtractor(restrict_xpaths='(//table//table)[5]//a'),cb_kwargs={'dept':u'外科'},callback='parse_dep',follow=True,),
 	Rule(LinkExtractor(restrict_xpaths='(//table//table)[7]//a'),cb_kwargs={'dept':u'牙科'},callback='parse_dep',follow=True,),
-	#Rule(LinkExtractor(restrict_xpaths='(//table//table)[9]//a'),cb_kwargs={'dept':u'其他專科'},callback='parse_dep',follow=True,),
-	#Rule(LinkExtractor(restrict_xpaths='(//table[10])//a'),cb_kwargs={'dept':10}, callback='parse_table',follow=True,process_links="filter_links",),
+	Rule(LinkExtractor(restrict_xpaths='(//table//table)[9]//a'),cb_kwargs={'dept':u'其他專科'},callback='parse_dep',follow=True,),
+	Rule(LinkExtractor(restrict_xpaths='(//table[10])//a'),cb_kwargs={'dept':10}, callback='parse_table',follow=True,process_links="filter_links",),
     )
 
     def parse_dep(self, response,**kwargs):
 	sel = Selector(response)
-	print "deptUrl : " + response.url
+	#print "deptUrl : " + response.url
 	nameList = sel.xpath("//table//a/@href").extract()
 	for i in range(len(nameList)):
 		if re.match("registdetail.aspx",nameList[i]):
@@ -68,7 +68,7 @@ class skh(CrawlSpider):
 		item['hospital'] = 'skh'
 		item['dept'] = dept 
 		item['date'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[1]//text()' % (t)).extract()[0]
-		print "t : " + str(t) + " " + item['date']
+		#print "t : " + str(t) + " " + item['date']
 		year = int(re.match(r"(\d*)(\d\d)(\d\d)",item['date']).group(1)) + 1911
 		mon = re.match(r"(\d*)(\d\d)(\d\d)",item['date']).group(2)
 		day = re.match(r"(\d*)(\d\d)(\d\d)",item['date']).group(3)
@@ -94,6 +94,6 @@ class skh(CrawlSpider):
 				item['link'] = baseLink + sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[1]/a/@href' % (t)).extract()[0]
 			elif re.match(u'額滿',item['full']):
 				item['full'] = u'預約額滿'
-		print "dept : " + dept + " date : " + item['date'] + ' time : ' + item['time'] + ' outpatient : ' + item['outpatient'] + ' full : ' + item['full'] + ' name : ' + item['name'] + ' full : ' + item['full'] + ' link : ' + item['link']
+		#print "dept : " + dept + " date : " + item['date'] + ' time : ' + item['time'] + ' outpatient : ' + item['outpatient'] + ' full : ' + item['full'] + ' name : ' + item['name'] + ' full : ' + item['full'] + ' link : ' + item['link']
 		items.append(item)
 	return items
