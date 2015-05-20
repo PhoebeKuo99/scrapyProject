@@ -11,6 +11,7 @@ from scrapy.selector import Selector
 from scrapy import log
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
@@ -37,9 +38,9 @@ class cgh(scrapy.Spider):
 		hospital = hospitalList[ihospital].get_attribute("title")
 		hospital = re.sub(u"國泰綜合醫院(.*)(國泰)?掛號",r'cgh-\1',hospital)
 		if not re.search(u"(新竹|總院|汐止)",hospital):
-			continue	
+			continue
+		#print str(ihospital)
 		hospitalList[ihospital].click()
-		time.sleep(5)
 		#print hospital
 		for idep in range(1,20,4):
 		#for idep in range(1,2,1):
@@ -48,20 +49,22 @@ class cgh(scrapy.Spider):
 				dept = dept.text
 				#print dept
 				outpatientList = self.driver.find_elements_by_xpath("//tr[%d+2]/td[2]/table/tbody//td[@class='Dep-list']//a" %(idep))
-				#for ioutpatient in range(0,len(outpatientList),1):
-				for ioutpatient in range(0,1,1):
+				for ioutpatient in range(0,len(outpatientList),1):
+				#for ioutpatient in range(0,1,1):
 					outpatient = outpatientList[ioutpatient].text
 					#print str(ioutpatient) + " : "+ outpatient
 					outpatientList[ioutpatient].click() 
-					time.sleep(5)
 					nameList =  self.driver.find_elements_by_xpath("//tr[@class='Content-text' or @class='Table-title-02']//a")
 					if len(nameList) >= 1 :
-						#for iname in range(0,len(nameList),1):
-						for iname in range(0,2,1):
+						for iname in range(0,len(nameList),1):
+						#for iname in range(0,2,1):
 							name = nameList[iname].text
 							#print str(iname) + " : " + name
 							nameList[iname].click()
-							time.sleep(5)
+							try:
+							        self.driver.switch_to.alert.accept()
+							except NoAlertPresentException:
+							        pass
 							itime = self.driver.find_element_by_xpath("(//td[@class='Table-title-04'])[1]").text
 							infoList =self.driver.find_elements_by_xpath("//tr[@class='Content-text' or @class='Table-title-02']")
 							
@@ -94,11 +97,8 @@ class cgh(scrapy.Spider):
 								item['crawlTime']=unicode(datetime.now().strftime("%Y%m%d %H:%M"))	
 								items.append(item)			
 							self.driver.back()
-							time.sleep(5)
 							nameList =  self.driver.find_elements_by_xpath("//tr[@class='Content-text' or @class='Table-title-02']//a")
-						self.driver.back()
-					else:
-						self.driver.back()
+					self.driver.back()
 					outpatientList = self.driver.find_elements_by_xpath("//tr[%d+2]/td[2]/table/tbody//td[@class='Dep-list']//a" %(idep))
 				#self.driver.back()
 			except Exception as e:
