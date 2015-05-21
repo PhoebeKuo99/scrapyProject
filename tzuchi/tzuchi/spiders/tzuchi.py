@@ -18,51 +18,74 @@ dcap["phantomjs.page.settings.userAgent"]=("Mozilla/5.0 (X11; Ubuntu; Linux x86_
 class tzuchi(scrapy.Spider):
     name = "tzuchi"
     allowed_domains = ["com.tw"]
-    start_urls = [
-	"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_DL.aspx",
-    ]
-    def __init__(self,**kwargs):
+    def __init__(self,hospitalUrl=None,*args,**kwargs):
+	super(tzuchi, self).__init__(*args,**kwargs)
+	if hospitalUrl:
+		self.start_urls = ['%s' % hospitalUrl]
+	else:
+    		self.start_urls = [
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_HL.aspx",
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_XD.aspx",
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_TC.aspx",
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_DL.aspx",
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_TL.aspx",
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_UL.aspx",
+			"https://app.tzuchi.com.tw/tchw/OpdReg/SecList_GS.aspx"
+    		]
+	global startUrlLen
+	startUrlLen = len(self.start_urls)
 	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
-	#self.driver=webdriver.Firefox()
 
     def parse(self, response):
 	self.driver.get(response.url)
-	hospitalLinkList = []
-        hospitalList = self.driver.find_elements_by_xpath('//td[@class="menu"]/select[@id="Select2"]/option[@value!="#"]')
-        hospitalSel = self.driver.find_elements_by_xpath('//td[@class="menu"]/select[@id="Select2"]')
-	for n in range(len(hospitalList)):
-	#for n in range(1):
-		hospitalLink=hospitalList[n].get_attribute("value")
-	#for n in range(len(hospitalList)):
-		self.driver.get(hospitalLink)
-		time.sleep(5)
-        	hospitalList = self.driver.find_elements_by_xpath('//td[@class="menu"]/select[@id="Select2"]/option[@value!="#"]')
-		hospital = hospitalList[n].text
-		hospital = re.sub(u"慈濟醫院掛號服務",'',hospital)
-        	btnList = self.driver.find_elements_by_xpath('//table[@class="style19"]//input[@type="submit"]')
-		btnNum = len(btnList)
-		#for btn in range(btnNum):
-		for btn in range(1):
-			btnList[btn].click()
-			time.sleep(5)
-        		request = Request(self.driver.current_url, callback = self.parse_table)
-			request.meta['hospital'] = hospital
-        		yield request
-			self.driver.get(response.url)
-        		btnList = self.driver.find_elements_by_xpath('//table[@class="style19"]//input[@type="submit"]')
-        	hospitalList = self.driver.find_elements_by_xpath('//td[@class="menu"]/select[@id="Select2"]/option[@value!="#"]')
-			
-	self.driver.close()
+	outpatientLinkList = []
+	if re.search("SecList_HL.aspx",response.url):
+		loc = '&HospLoc=3'
+		hospital = u"花蓮"
+	elif re.search("SecList_XD.aspx",response.url):
+		loc = '&HospLoc=4'
+		hospital = u"臺北"
+	elif re.search("SecList_TC.aspx",response.url):
+		loc = '&HospLoc=7'
+		hospital = u"臺中"
+	elif re.search("SecList_DL.aspx",response.url):
+		loc = '&HospLoc=1'
+		hospital = u"大林"
+	elif re.search("SecList_TL.aspx",response.url):
+		loc = '&HospLoc=2'
+		hospital = u"斗六"
+	elif re.search("SecList_UL.aspx",response.url):
+		loc = '&HospLoc=5'
+		hospital = u"玉里"
+	else : 
+		loc = '&HospLoc=6'
+		hospital = u"關山"
 
+	outpatientList = self.driver.find_elements_by_xpath('//input[@class="RegButton"]')
+	outLen = len(outpatientList)
+	for n in range(outLen):
+	#for n in range(1):
+		outpatientList[n].click()
+		#outpatientLink = 'https://app.tzuchi.com.tw/tchw/OpdReg/OpdTimeShow.aspx?Depart=' + outpatientList[n] + loc
+		outpatientLinkList.append(self.driver.current_url)
+		self.driver.get(response.url)
+		outpatientList = self.driver.find_elements_by_xpath('//input[@class="RegButton"]')
+	self.driver.quit()
+	for n in range(outLen):
+        	request = Request(outpatientLinkList[n], callback = self.parse_table)
+		request.meta['hospital'] = hospital
+        	yield request
+			
     def parse_table(self, response):
-        baseLink = "https://app.tzuchi.com.tw/tchw/opdreg/"
+        baseLink = "https://app.tzuchi.com.tw/tchw/OpdReg/"
         items = []
         sel = Selector(response)
  	hospital = response.meta['hospital']	
 	### get the name of the dept
-        outpatient = sel.xpath('//table/tr').xpath('.//span').xpath('.//text()').extract()
+        outpatient = sel.xpath("//span[@id='ctl00_ContentPlaceHolder1_lblTitle']").xpath('.//text()').extract()
 	outpatient = outpatient[0].split(' ')[1]
 	dept = outpatient	
+	#print dept
         ##一個頁面有四個table
         tables = sel.xpath('//table[@id="example"]')
         #table1 = sel.xpath('//table[@id="Table1"]/tr')
@@ -127,6 +150,7 @@ class tzuchi(scrapy.Spider):
 					item['date'] = item_tmp['date']
 					item['name'] = allText[nth]
 					nth2=nth+1
+					#print item['hospital'] + " " + item['outpatient'] + " " + item['dept'] + " " + item['date'] + " " + item['time'] + " " + item['name']
 					try :
 						if not re.match("^\s*[(]", allText[nth2]) and not re.match("^\s*\*", allText[nth2]) :
 							pass
@@ -140,7 +164,6 @@ class tzuchi(scrapy.Spider):
 							
 					except Exception as e:
                         			pass 
-                         		#items.append(item)
 				#elif re.match(r"額滿", allText[nth].encode('utf-8'),re.UNICODE) :
 				#elif allText[nth] == u'(預約額滿)' :
 				#else:
