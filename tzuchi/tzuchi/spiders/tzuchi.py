@@ -150,7 +150,7 @@ class tzuchi(scrapy.Spider):
 					item['date'] = item_tmp['date']
 					item['name'] = allText[nth]
 					nth2=nth+1
-					#print item['hospital'] + " " + item['outpatient'] + " " + item['dept'] + " " + item['date'] + " " + item['time'] + " " + item['name']
+					#print item['full']+ " " + item['hospital'] + " " + item['outpatient'] + " " + item['dept'] + " " + item['date'] + " " + item['time'] + " " + item['name']
 					try :
 						if not re.match("^\s*[(]", allText[nth2]) and not re.match("^\s*\*", allText[nth2]) :
 							pass
@@ -158,6 +158,7 @@ class tzuchi(scrapy.Spider):
 							while nth2 < len(allText):
 								if not re.search(u"第.*診",allText[nth2]):
 									item['full'] = allText[nth2]
+									break
 								nth2+=1
 								if not re.match("^\s*[(]", allText[nth2]) and not re.match("^\s*\*", allText[nth2]) :
 									break
