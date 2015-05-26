@@ -52,6 +52,8 @@ class cgh(scrapy.Spider):
 				for ioutpatient in range(0,len(outpatientList),1):
 				#for ioutpatient in range(0,1,1):
 					outpatient = outpatientList[ioutpatient].text
+					if outpatient == u'放射腫瘤科' or (hospital != u'cgh-總院' and outpatient == u'牙科'):
+						continue
 					#print str(ioutpatient) + " : "+ outpatient
 					outpatientList[ioutpatient].click() 
 					nameList =  self.driver.find_elements_by_xpath("//tr[@class='Content-text' or @class='Table-title-02']//a")
