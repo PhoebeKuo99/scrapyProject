@@ -156,7 +156,8 @@ class tzuchi(scrapy.Spider):
 							pass
 						else:
 							while nth2 < len(allText):
-								if not re.search(u"第.*診",allText[nth2]):
+								#if not re.search(u"第.*診",allText[nth2]):
+								if re.search(u"(停|代)診",allText[nth2]) or  re.search(u"額滿",allText[nth2]):
 									item['full'] = allText[nth2]
 									break
 								nth2+=1
