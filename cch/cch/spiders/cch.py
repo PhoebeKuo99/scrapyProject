@@ -34,7 +34,8 @@ class cch(scrapy.Spider):
 		self.start_urls = ['%s' % hospitalUrl]
 	else:
     		self.start_urls = [
-       		 	"http://www2.cch.org.tw/20RG/opd/Service-e.aspx",
+       		 	#"http://www2.cch.org.tw/20RG/opd/Service-e.aspx",
+			"http://www.erhlin.cch.org.tw/opd/opd/Service-e.aspx",
         		"http://www.rc.cch.org.tw/opd/Service-e.aspx",
         		"http://www2.cch.org.tw/rdweb/opd/Service-e.aspx",
         		"http://www.ys.cch.org.tw/opd/Service-e.aspx",
