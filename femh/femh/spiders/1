@@ -1,0 +1,82 @@
+# -*- coding: utf-8 -*-
+import sys
+import re
+import scrapy
+import time
+from scrapy.spider import Spider
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from datetime import datetime
+from scrapy.http import Request, FormRequest, TextResponse
+from scrapy.selector import Selector
+from scrapy import log
+from scrapy.contrib.linkextractors import LinkExtractor
+from ..items import femhItem
+import urllib
+baseLink = "https://hos.femh.org.tw/newfemh/webregs/"
+def process_value(value):
+	m = re.search("javascript:location.href='(.*)';", value)
+    	if m:
+       		return baseLink + m.group(1)
+class femh(CrawlSpider):
+    name = "femh"
+    allowed_domains = ["org.tw"]
+    start_urls = [
+	"https://hos.femh.org.tw/newfemh/webregs/Sector.aspx"
+    ]
+    rules =(
+	Rule(LinkExtractor(restrict_xpaths='(//table[@id="ctl00_FunctionContent_gvSecDr"]//tr//td/@onclick)',process_value=process_value),callback='parse_dep',follow=True,),
+
+    )
+
+    def parse_dep(self, response):
+	sel = Selector(response)
+	print "deptUrl : " + response.url
+	weekList = sel.xpath("//input[@class='btn3']").extract()
+	for i in range(len(weekList)):
+		weekUrl = response.url + '&mtypes=' + str(i)
+		print weekUrl
+		#request = Request(weekUrl,callback=self.parse_table)
+		#yield request
+    def parse_table(self, response):
+	items = []
+	#print "------" + response.url
+	dept = response.meta['dept']
+	sel = Selector(response)
+	rows = sel.xpath('//table[@id="Table1"]//tr')
+	rowLen = len(rows) + 1
+	#print rowLen
+	for t in range(2,rowLen,1):
+		item = femhItem()
+		item['link'] = 'NA'
+		item['hospital'] = 'femh'
+		item['dept'] = dept 
+		item['date'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[1]//text()' % (t)).extract()[0]
+		print "t : " + str(t) + " " + item['date']
+		year = int(re.match(r"(\d*)(\d\d)(\d\d)",item['date']).group(1)) + 1911
+		mon = re.match(r"(\d*)(\d\d)(\d\d)",item['date']).group(2)
+		day = re.match(r"(\d*)(\d\d)(\d\d)",item['date']).group(3)
+		item['date'] = str(year) + mon + day
+		item['time'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[2]//text()' % (t)).extract()[0]
+		if item['time'] == u'上午':
+			item['time'] = 'morning'
+		elif item['time'] == u'下午':
+			item['time'] = 'afternoon'
+		else:
+			item['time'] = 'night'
+		if dept == u'牙科':
+			item['outpatient'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]//td[4]//text()' % (t)).extract()[0]
+		else :
+			item['outpatient'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]//td[3]//text()' % (t)).extract()[0]
+		item['full'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[6]//text()' % (t)).extract()[0]
+		item['name'] = sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[7]//text()' % (t)).extract()[0]
+		item['crawlTime'] = unicode(datetime.now().strftime("%Y%m%d %H:%M"))
+		if re.match("^\s*$",item['full']):
+				item['full'] = u'可掛號'
+		else:
+			if re.match("^\d*$",item['full']):
+				item['link'] = baseLink + sel.xpath('(//table[@id="Table1"]//tr)[%d]/td[1]/a/@href' % (t)).extract()[0]
+			elif re.match(u'額滿',item['full']):
+				item['full'] = u'預約額滿'
+		print "dept : " + dept + " date : " + item['date'] + ' time : ' + item['time'] + ' outpatient : ' + item['outpatient'] + ' full : ' + item['full'] + ' name : ' + item['name'] + ' full : ' + item['full'] + ' link : ' + item['link']
+		items.append(item)
+	return items
