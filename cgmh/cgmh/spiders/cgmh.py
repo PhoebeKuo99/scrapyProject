@@ -15,7 +15,7 @@ import urllib
 baseLink = 'https://register.cgmh.org.tw/'
 
 def process_value(value) :
-    print value
+    #print value
     return baseLink + value
 
 class cgmh(CrawlSpider):
@@ -96,5 +96,5 @@ class cgmh(CrawlSpider):
 					item['link']='NA'
 					item['crawlTime'] = unicode(datetime.now().strftime("%Y%m%d %H:%M"))
 					items.append(item)
-					print "hospital : " + hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime
+					#print "hospital : " + hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime
 	return items
