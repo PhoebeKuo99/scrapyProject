@@ -108,8 +108,8 @@ class vghtpe(CrawlSpider):
 							item['time']=itime
 							item['full']=full
 							items.append(item)
-							print "hospital : "+ hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime 
-				print "end of the table"
+							#print "hospital : "+ hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime 
+				#print "end of the table"
 			
 						#print "dept : " + item['dept'] + " date : " + item['date'] + ' time : ' + item['time'] + ' outpatient : ' + item['outpatient'] + ' full : ' + item['full'] + ' name : ' + item['name'] + ' link : ' + item['link']
 			aLink = self.driver.find_elements_by_xpath('.//a')
