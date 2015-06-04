@@ -84,5 +84,5 @@ class mmh(CrawlSpider):
                                 item['link']='NA'
                                 item['crawlTime'] = unicode(datetime.now().strftime("%Y%m%d %H:%M"))
 				items.append(item)
-				print "Col : " + str(c) + " Row : " + str(t) + " hospital : " + hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime
+				#print "Col : " + str(c) + " Row : " + str(t) + " hospital : " + hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime
 	return items
