@@ -18,7 +18,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from scrapy.contrib.linkextractors import LinkExtractor
 from ..items import cghItem
-
+js = """
+window.alert = function(message) {
+lastAlert = message;
+}
+"""
 class cgh(scrapy.Spider):
     name = "cgh"
     allowed_domains = ["org.tw"]
@@ -26,8 +30,8 @@ class cgh(scrapy.Spider):
 	"http://www.cgh.org.tw/tw/reg/main_01.jsp"
     ]
     def __init__(self,**kwargs):
-	#self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
-	self.driver=webdriver.Firefox()
+	self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
+	#self.driver=webdriver.Firefox()
 
     def parse(self, response):
         self.driver.get(response.url)
@@ -64,7 +68,8 @@ class cgh(scrapy.Spider):
 							#print str(iname) + " : " + name
 							nameList[iname].click()
 							try:
-							        self.driver.switch_to.alert.accept()
+								self.driver.execute_script("%s" % js)
+							        #self.driver.switch_to.alert.accept()
 							except NoAlertPresentException:
 							        pass
 							itime = self.driver.find_element_by_xpath("(//td[@class='Table-title-04'])[1]").text
