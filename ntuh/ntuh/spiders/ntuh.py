@@ -105,5 +105,5 @@ class ntuh(CrawlSpider):
                 item['link']='NA'
                 item['crawlTime'] = unicode(datetime.now().strftime("%Y%m%d %H:%M"))
                 items.append(item)
-		print " hospital : " + hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime
+		#print " hospital : " + hospital + " dept : " + dept + " outpatient : " + outpatient +  " name : " + name + " full : " + full + " date : " + date + " time : " + itime
 	return items
