@@ -57,10 +57,10 @@ class ncku(scrapy.Spider):
 		#print "dept : " + dept + " n : " + str(n)
 		outpatientList[n].click()
 		time.sleep(10)
-		dateList = self.driver.find_elements_by_xpath("//%s//tr" % (regTable))[1]
+		#dateList = self.driver.find_elements_by_xpath("//%s//tr" % (regTable))[1]
 		#print dateList
 		#dateLen = len(dateList) - 2
-		timeList = self.driver.find_elements_by_xpath("//%s//tr" % (regTable))[2]
+		#timeList = self.driver.find_elements_by_xpath("//%s//tr" % (regTable))[2]
 		#dateLen = len(timeList) - 1
 		rowList = self.driver.find_elements_by_xpath("//%s//tr" % (regTable))
 		rowLen = len(rowList)
