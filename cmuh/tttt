@@ -1,0 +1,73 @@
+# -*- coding: utf-8 -*-
+import sys
+import re
+import scrapy
+import time
+from scrapy.spider import Spider
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from datetime import datetime
+from scrapy.http import Request, FormRequest, TextResponse
+from scrapy.selector import Selector
+from scrapy import log
+from scrapy.contrib.linkextractors import LinkExtractor
+from ..items import cmuhItem
+from selenium.common.exceptions import NoAlertPresentException
+from selenium import webdriver
+import urllib
+js = """
+window.alert = function(message) {
+lastAlert = message;
+}
+"""
+class cmuh(CrawlSpider):
+    name = "cmuh"
+    allowed_domains = ["edu.tw"]
+    start_urls = [
+	"http://www.cmuh.cmu.edu.tw/web/guest/onlineappointment"
+	
+    ]
+    def __init__(self,**kwargs):
+        #self.driver=webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs')
+	self.driver=webdriver.Firefox()
+
+    def parse(self, response):
+	self.driver.get(response.url)
+	btn = self.driver.find_element_by_xpath('//div[@class="fright1 firstD"]')
+	btn.click()
+	outpatientList = self.driver.find_elements_by_xpath('//div[contains(@class,"dep_")]//a')
+	hospital = 'cmuh'
+	#for i in range(1,len(outpatientList)+1,1):
+	for i in range(1,3,1):
+		try:
+			outpatientList[i].click()
+			self.driver.switch_to_window(self.driver.window_handles[1])
+			outpatientUrl = self.driver.current_url
+			nameUrlList = self.driver.find_elements_by_xpath('.//a')
+			for j in range(len(nameUrlList)):
+				nameUrlList[j].click()
+				self.driver.switch_to_window(self.driver.window_handles[2])
+				self.driver.get(self.driver.current_url)
+				realUrl = self.driver.find_element_by_xpath('//iframe[@id="frameid"]').get_attribute('src')
+				self.driver.get(realUrl)
+				time.sleep(4)
+				boxList = self.driver.find_elements_by_xpath('(//td[@class="schBox"])')
+				for b in range(len(boxList)):
+					objList = boxList[b].find_elements_by_xpath('./div')
+					time = (boxList[b].find_elements_by_xpath('.//preceding::td[contains(@class,"timeSlot")]'))[-1].text
+					name = (boxList[b].find_elements_by_xpath('.//div[@class="step1"]'))[1].text
+					for o in range(len(objList)):
+						full = objList[o].text
+						print "-----"
+						print name
+						print time
+						print full
+						print "-----"
+				#nameUrl.append(realUrl)
+				#print realUrl
+				self.driver.close()
+				self.driver.switch_to_window(self.driver.window_handles[1])
+				nameUrlList = self.driver.find_elements_by_xpath('.//a')
+			self.driver.switch_to_window(self.driver.window_handles[0])	
+			outpatientList = self.driver.find_elements_by_xpath('//div[contains(@class,"dep_")]//a')
+		except Exception as e:
+			pass
