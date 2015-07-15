@@ -90,7 +90,8 @@ class cmuh(CrawlSpider):
         				yield request
                         		#nameUrl.append(url)
 					#print "this" + url 
-				except Exception as e:	
+				except Exception as e:
+					continue
 					#print "Error with this url : "
 					#print self.driver.current_url
 				self.driver.close()
