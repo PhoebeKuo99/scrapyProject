@@ -53,7 +53,7 @@ class cmuh(CrawlSpider):
 			#time.sleep(5)
 			if len(self.driver.window_handles) == 1:
 				next
-			else:
+			#else:
 				#print len(self.driver.window_handles)
 			self.driver.switch_to_window(self.driver.window_handles[1])
 			time.sleep(5)
