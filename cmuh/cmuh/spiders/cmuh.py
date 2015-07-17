@@ -91,7 +91,7 @@ class cmuh(CrawlSpider):
                         		#nameUrl.append(url)
 					#print "this" + url 
 				except Exception as e:
-					continue
+					pass
 					#print "Error with this url : "
 					#print self.driver.current_url
 				self.driver.close()
@@ -126,7 +126,7 @@ class cmuh(CrawlSpider):
 		name = m.group(1)
 		for o in range(len(objList)):
 			info = '  '.join(objList[o].xpath('.//text()').extract())
-			m = re.search(u".*([0-9]+).*人",info)
+			m = re.search(u"[^0-9]*([0-9]+).*人",info)
 			if m:
 				full = m.group(1)
 			else:
